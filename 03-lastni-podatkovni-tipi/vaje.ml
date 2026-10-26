@@ -19,13 +19,12 @@
  Namig: Občudujte informativnost tipov funkcij.
 [*----------------------------------------------------------------------------*)
 
-type euro 
+type euro = Euro of float
+type dollar = Dollar of float
 
-type dollar 
+let dollar_to_euro (Dollar d) = Euro (d *. 0.88)
 
-let dollar_to_euro _ = ()
-
-let euro_to_dollar _ = ()
+let euro_to_dollar (Euro e) = Dollar (e *. 1.14)
 
 (* let primer_valute_1 = dollar_to_euro (Dollar 0.5) *)
 (* val primer_valute_1 : euro = Euro 0.4305 *)
@@ -39,9 +38,17 @@ let euro_to_dollar _ = ()
  Ocaml sam opozori, da je potrebno popraviti funkcijo `to_pound`.
 [*----------------------------------------------------------------------------*)
 
-type currency 
+type currency = 
+  | Yen of float
+  | Pound of float
+  | Krona of float
+  | Franc of float
 
-let to_pound _ = ()
+let to_pound = function
+  | Yen y -> Pound (y *. 0.007)
+  | Pound p -> Pound p
+  | Krona k -> Pound (k *. 0.08)
+  | Franc f -> Pound (f *. 0.85)
 
 (* let primer_valute_2 = to_pound (Yen 100.) *)
 (* val primer_valute_2 : currency = Pound 0.700000000000000067 *)
@@ -69,9 +76,13 @@ let to_pound _ = ()
  Nato napišite testni primer, ki bi predstavljal `[5; true; false; 7]`.
 [*----------------------------------------------------------------------------*)
 
-type intbool_list 
+type intbool_list =
+  | Nil (* prazen seznam *)
+  | Int of int * intbool_list (* člen s celoštevilsko vrednostjo in preostankom seznama intbool_list *)
+  | Bool of bool * intbool_list (* člen z logično vrednostjo in preostankom seznama intbool_list *)
 
-let test = ()
+
+let test = Int (5, Bool (true, Bool (false, Int (7, Nil))))
 
 (*----------------------------------------------------------------------------*
  Funkcija `intbool_map f_int f_bool ib_list` preslika vrednosti `ib_list` v nov
@@ -79,14 +90,31 @@ let test = ()
  oz. `f_bool`.
 [*----------------------------------------------------------------------------*)
 
-let rec intbool_map _ _ _ = ()
+
+let rec intbool_map f_int f_bool ib_list =
+  match ib_list with (* Seznam razstavimo glede na to, kateri konstruktor je na začetku. 
+  Ena veja obravnava vsak konstruktor tipa intbool_list.*)
+  | Nil -> Nil
+  | Int (i, ib_list') -> Int (f_int i, intbool_map f_int f_bool ib_list')
+  | Bool (b, ib_list') -> Bool (f_bool b, intbool_map f_int f_bool ib_list')
+
+(* let primer_intbool_map = intbool_map ((+) 1) not test *)
+(* val primer_intbool_map : intbool_list = Int (6, Bool (false, Bool (true, Int (8, Nil)))) *)
 
 (*----------------------------------------------------------------------------*
  Funkcija `intbool_reverse` obrne vrstni red elementov `intbool_list` seznama.
  Funkcija je repno rekurzivna.
 [*----------------------------------------------------------------------------*)
 
-let rec intbool_reverse _ = ()
+let intbool_reverse l = (* funckija sprejme mesani seznam l*)
+  let rec aux acc l = (* acc je mesani seznam, ki sprejme elemente v obratnem vrstnem redu, l je preostanek seznama nepregledan*)
+    match l with (* Razstavimo preostanek glede na konstruktor na začetku.*)
+    | Nil -> acc (* če ni več elementov, je akumulator obrnjen seznam in ga vrnemo.*)
+    | Int (i, l') -> aux (Int (i, acc)) l' (*Int (i, acc) postavi i na začetek akumulatorja. 
+    Je enako kot i :: acc pri navadnih seznamih, aux (...) l' nadaljuje z repom l'.*)
+    | Bool (b, l') -> aux (Bool (b, acc)) l'
+  in
+  aux Nil l
 
 (*----------------------------------------------------------------------------*
  Funkcija `intbool_separate ib_list` loči vrednosti `ib_list` v par `list`
@@ -94,7 +122,17 @@ let rec intbool_reverse _ = ()
  vrednosti. Funkcija je repno rekurzivna in ohranja vrstni red elementov.
 [*----------------------------------------------------------------------------*)
 
-let rec intbool_separate _ = ()
+let rec intbool_separate ib_list =
+  match ib_list with
+  | Nil -> ([], [])
+  | Int (i, ib_list') ->
+      let ints, bools = intbool_separate ib_list' in
+      (i :: ints, bools) (* najprej rekurzivno razdeli rep in rezultat (par) razstavi na ints in bools,
+      doda i na začetek seznama števil, seznam logičnih vrednosti ostane enak. *)
+  | Bool (b, ib_list') ->
+      let ints, bools = intbool_separate ib_list' in
+      (ints, b :: bools)
+
 
 (*----------------------------------------------------------------------------*
  ## Čarodeji
@@ -112,9 +150,15 @@ let rec intbool_separate _ = ()
  tip `specialisation`, ki loči med temi zaposlitvami.
 [*----------------------------------------------------------------------------*)
 
-type magic 
+type magic =
+ | Fire
+ | Frost
+ | Arcane
 
-type specialisation 
+type specialisation  =
+  | Historian
+  | Teacher
+  | Researcher
 
 (*----------------------------------------------------------------------------*
  Vsak od čarodejev začne kot začetnik, nato na neki točki postane študent, na
@@ -130,13 +174,16 @@ type specialisation
  `jaina`, ki je četrto leto študentka magije ledu.
 [*----------------------------------------------------------------------------*)
 
-type status 
+type status =
+  | Newbie
+  | Student of magic * int (* vrsta magije in koliko časa študira *)
+  | Employed of magic * specialisation (* vrsta magije in specializacija *)
 
-type wizard 
+type wizard = {ime : string; status : status}
 
-let professor  = ()
+let professor  = {ime = "Professor"; status = Employed (Fire, Teacher)}
 
-let jaina  = ()
+let jaina  = {ime = "Jaina"; status = Student (Frost, 4)}
 
 (*----------------------------------------------------------------------------*
  Želimo prešteti koliko uporabnikov posamezne od vrst magije imamo na akademiji.
@@ -145,9 +192,13 @@ let jaina  = ()
  nov števec s posodobljenim poljem glede na vrednost `magic`.
 [*----------------------------------------------------------------------------*)
 
-type magic_counter 
+type magic_counter = {fire : int; frost : int; arcane : int}
 
-let update _ _ = ()
+let update counter magic_type = (* counter je trenutni števec tipa magic_counter, torej zapis s polji fire, frost in arcane,*)
+  match magic_type with
+  | Fire -> { counter with fire = counter.fire + 1 } (* counter.fire prebere trenutno vrednost polja fire,*)
+  | Frost -> { counter with frost = counter.frost + 1 }
+  | Arcane -> { counter with arcane = counter.arcane + 1 }
 
 (* let primer_carovniki_1 = update {fire = 1; frost = 1; arcane = 1} Arcane *)
 (* val primer_carovniki_1 : magic_counter = {fire = 1; frost = 1; arcane = 2} *)
@@ -157,7 +208,18 @@ let update _ _ = ()
  različnih vrst magij.
 [*----------------------------------------------------------------------------*)
 
-let count_magic _ = ()
+let count_magic wizards =
+  let rec count_magic' wizards counter = (* wizards je preostanek seznama k ga se nismo pregledal, counter je trenuten stevec*)
+    match wizards with
+    | [] -> counter
+    | {status = Employed(magic, _)} :: wizards' -> count_magic' wizards' (update counter magic)
+    | { status = Student (magic, _) } :: wizards' ->
+    count_magic' wizards' (update counter magic)
+    | _ :: wizards' -> count_magic' wizards' counter
+    in 
+    count_magic' wizards {fire = 0; frost = 0; arcane = 0}
+
+
 
 (* let primer_carovniki_2 = count_magic [professor; professor; professor] *)
 (* val primer_carovniki_2 : magic_counter = {fire = 3; frost = 0; arcane = 0} *)
@@ -172,7 +234,27 @@ let count_magic _ = ()
  `None`.
 [*----------------------------------------------------------------------------*)
 
-let find_candidate _ _ _ = ()
+let find_candidate magic specialisation wizards =
+  let rec find_candidate' wizards =
+    match wizards with
+    | [] -> None
+    | {ime; status = Student (m, years) } :: wizards' ->
+        if m = magic then
+          if
+            years
+            >=
+            match specialisation with
+            | Historian -> 3
+            | Teacher -> 5
+            | Researcher -> 4
+          then Some ime
+          else find_candidate' wizards'
+        else find_candidate' wizards'
+    | _ :: wizards' -> find_candidate' wizards'
+  in
+  find_candidate' wizards
+
+  
 
 (* let primer_carovniki_3 =
   find_candidate Frost Researcher [professor; jaina] *)
