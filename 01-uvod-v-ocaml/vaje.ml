@@ -51,11 +51,11 @@ let primer_vektorji_3 = skalarni_produkt [1.0; 2.0; 3.0] [4.0; 5.0; 6.0]
 (* val primer_vektorji_3 : float = 32. *)
 
 let skalarni_produkt u v = vsota_seznama (
-  List.map2 ((*.)) u v
+  List.map2 ( *. ) u v
 )
 
-let skalarni_produkt2 u v = 
-  List.map2 ( (*.) ) u v
+let skalarni_produkt2 u v =
+  List.map2 ( *. ) u v
   |> vsota_seznama
 (*----------------------------------------------------------------------------*
  Napišite funkcijo `norma : float list -> float`, ki vrne evklidsko normo
@@ -103,7 +103,7 @@ let normirani u =
   let d = norma u in
   razteg (1 /. d) u
 
-( * normiramo da ga delimo z normo * )
+(* normiramo da ga delimo z normo *)
 (*----------------------------------------------------------------------------*
  Napišite funkcijo `projeciraj : float list -> float list -> float list`, ki
  izračuna projekcijo prvega vektorja na drugega.
