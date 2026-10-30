@@ -223,6 +223,9 @@ let vsota (denar : kovanec list) =
    postopek za preostali znesek.
   [*----------------------------------------------------------------------------*)
 
+let v_niz (znesek : int) : string =
+  Printf.sprintf "%d.%02d €" (znesek / 100) (znesek mod 100)
+
 let drobiz znesek =
   let rec aux znesek acc =
     if znesek = 0 then List.rev acc
@@ -321,7 +324,7 @@ let zacetno_stanje = { nacin = Obratuje; kredit = 0; zaloga = zacetna_zaloga }
   [*----------------------------------------------------------------------------*)
 
 let opis_napake = function
-  | Premalo n -> "Vstavite še " ^ string_of_int n
+  | Premalo n -> "Vstavite še " ^ v_niz n
   | NiIzdelka ime -> "Izdelka " ^ ime ^ " ni"
   | Razprodano ime -> "Izdelek " ^ ime ^ " je razprodan"
   | VVzdrzevanju -> "Avtomat je v vzdrževanju"

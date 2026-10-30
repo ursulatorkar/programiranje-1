@@ -21,7 +21,7 @@ let razteg (k : float) (v : float list) : float list =
 
 (* Boljsa verzija *)
 
-let razteg k v = List.map (fun x -> k * x) v;;
+let razteg k v = List.map (fun x -> k *. x) v;;
 let razteg1 u v = List.map ( ( *. ) u) v ;;
 
 (*----------------------------------------------------------------------------*
@@ -73,17 +73,16 @@ let norma u = Float.sqrt (skalarni_produkt u u)
  Napišite funkcijo `vmesni_kot : float list -> float list -> float`, ki izračuna
  kot med dvema vektorjema v radianih.
 [*----------------------------------------------------------------------------*)
-
-let vmesni_kot _ _ = ()
-
-let primer_vektorji_5 = vmesni_kot [1.0; 0.0] [0.0; 1.0]
-(* val primer_vektorji_5 : float = 1.57079632679489656 *)
-
 let vmesni_kot u v = acos (
   (skalarni_produkt u v)
   /.
   ((norma u) *. (norma v))
 )
+
+let primer_vektorji_5 = vmesni_kot [1.0; 0.0] [0.0; 1.0]
+(* val primer_vektorji_5 : float = 1.57079632679489656 *)
+
+
 (* 
 acos je funkcija za arkus cosinus,
 kos je skalar (u, v) /. norma u * norma v 
@@ -93,15 +92,14 @@ kos je skalar (u, v) /. norma u * norma v
  vektor.
 [*----------------------------------------------------------------------------*)
 
-let normirani _ = ()
+let normirani u = 
+  let d = norma u in
+  razteg (1. /. d) u
 
 let primer_vektorji_6 = normirani [3.0; 4.0]
 (* val primer_vektorji_6 : float list = [0.600000000000000089; 0.8] *)
 
 
-let normirani u =
-  let d = norma u in
-  razteg (1 /. d) u
 
 (* normiramo da ga delimo z normo *)
 (*----------------------------------------------------------------------------*
@@ -109,12 +107,8 @@ let normirani u =
  izračuna projekcijo prvega vektorja na drugega.
 [*----------------------------------------------------------------------------*)
 
-let projekcija u v = razteg (
-  ((skalarni_produkt u v) /. (norma v))
-) v
-
-let primer_vektorji_7 = projekcija [3.0; 4.0] [1.0; 0.0]
-(* val primer_vektorji_7 : float list = [3.; 0.] *)
+let projeciraj u v =
+  razteg (skalarni_produkt u v /. skalarni_produkt v v) v
 
 (*----------------------------------------------------------------------------*
  ## Generiranje HTML-ja
@@ -125,7 +119,7 @@ let primer_vektorji_7 = projekcija [3.0; 4.0] [1.0; 0.0]
  oznake in vsebino ter vrne niz, ki predstavlja ustrezno HTML oznako.
 [*----------------------------------------------------------------------------*)
 
-let ovij oznaka vsebina = "<" ^ oznaka ^ ">" ^ vsebina ^ "</" ^ oznaka ">"
+let ovij oznaka vsebina = "<" ^ oznaka ^ ">" ^ vsebina ^ "</" ^ oznaka ^ ">"
 
 let primer_html_1 = ovij "h1" "Hello, world!"
 (* val primer_html_1 : string = "<h1>Hello, world!</h1>" *)
